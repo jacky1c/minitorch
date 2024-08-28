@@ -5,14 +5,15 @@ If you're interested in learning more, I highly recommend checking out the excel
 
 ## Setup
 
-MiniTorch requires Python 3.11 or higher.
+My venv is Python 3.8.
 
-Conda install
+Install dependencies
 ```bash
-conda install --yes --file requirements.txt
-conda install --yes --file requirements.extra.txt
-conda install conda-forge::llvmlite
-conda install conda-forge::pre_commit
+pip install -r  requirements.txt
+pip install -r  requirements.extra.txt
+pip install -Ue .
+conda install llvmlite
+pip install altair==4.0
 ```
 
 Make sure that everything is installed by running python and then checking:
@@ -53,11 +54,13 @@ To access the autograder:
 
 ## Module 0 - Fundamentals
 
-- [ ] Operators
-- [ ] Testing and Debugging
-- [ ] Functional Python
-- [ ] Modules
-- [ ] Visualization
+- [x] Operators
+- [x] Testing and Debugging
+- [x] Functional Python
+- [x] Modules
+- [x] Visualization
+
+![task0.5](./figs/task0.5.png)
 
 ## Module 1 - Autodiff
 

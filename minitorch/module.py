@@ -31,13 +31,17 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        self.training = True
+        for sub_module in self._modules.values():
+            sub_module.train()
 
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        self.training = False
+        for sub_module in self._modules.values():
+            sub_module.eval()
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
@@ -47,13 +51,26 @@ class Module:
         Returns:
             The name and `Parameter` of each ancestor parameter.
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        ls = []
+        for param_name, param_value in self._parameters.items():
+            ls.append((param_name, param_value))
+        for sub_module_name, sub_module in self._modules.items():
+            ls += [
+                (f"{sub_module_name}.{param_name}", param_value)
+                for param_name, param_value in sub_module.named_parameters()
+            ]
+        return ls
 
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        ls = []
+        for param_value in self._parameters.values():
+            ls.append(param_value)
+        for sub_module in self._modules.values():
+            ls += sub_module.parameters()
+        return ls
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """

@@ -65,7 +65,39 @@ def test_simple(a: float, b: float) -> None:
     c = Scalar(a).relu() + Scalar(b).relu()
     assert_close(c.data, minitorch.operators.relu(a) + minitorch.operators.relu(b))
 
-    # Add others if you would like...
+    # Simple sigmoid
+    c = Scalar(a).sigmoid() + Scalar(b).sigmoid()
+    assert_close(
+        c.data, minitorch.operators.sigmoid(a) + minitorch.operators.sigmoid(b)
+    )
+
+    # Simple exp
+    c = Scalar(a).exp() + Scalar(b).exp()
+    assert_close(c.data, minitorch.operators.exp(a) + minitorch.operators.exp(b))
+
+    # Simple log
+    if a > 0:
+        c = Scalar(a).log()
+        assert_close(c.data, minitorch.operators.log(a))
+    if b > 0:
+        c = Scalar(b).log()
+        assert_close(c.data, minitorch.operators.log(b))
+
+    # Simple lt
+    c = Scalar(a) < Scalar(b)
+    assert_close(c.data, a < b)
+
+    # Simple gt
+    c = Scalar(a) > Scalar(b)
+    assert_close(c.data, a > b)
+
+    # Simple eq
+    c = Scalar(a) == Scalar(b)
+    assert_close(c.data, a == b)
+
+    # Simple sub
+    c = Scalar(a) - Scalar(b)
+    assert_close(c.data, a - b)
 
 
 one_arg, two_arg, _ = MathTestVariable._comp_testing()

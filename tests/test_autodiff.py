@@ -4,6 +4,11 @@ import pytest
 
 import minitorch
 from minitorch import Context, ScalarFunction, ScalarHistory
+from minitorch.autodiff import topological_sort
+
+# from minitorch.scalar_functions import Log, Exp
+# from minitorch.scalar import Scalar
+import math
 
 # ## Task 1.3 - Tests for the autodifferentiation machinery.
 
@@ -36,44 +41,62 @@ class Function2(ScalarFunction):
         return d_output * (y + 1), d_output * x
 
 
+class Function3(ScalarFunction):
+    @staticmethod
+    def forward(ctx: Context, x: float, y: float) -> float:
+        "$f(x, y) = log(xy) + exp(xy)$"
+        return math.log(x * y) + math.exp(x * y)
+
+    @staticmethod
+    def backward(ctx: Context, d_output: float) -> Tuple[float, float]:
+        "Derivatives are $f'_x(x, y) = \frac{1}{x} + exp(xy) \times y$ and $f'_y(x, y) = \frac{1}{y} + exp(xy) \times x$"
+        x, y = ctx.saved_values
+        return d_output * (1 / x + math.exp(x * y) * y), d_output * (
+            1 / y + math.exp(x * y) * x
+        )
+
+
 # Checks for the chain rule function.
 
 
 @pytest.mark.task1_3
 def test_chain_rule1() -> None:
-    x = minitorch.Scalar(0.0)
-    constant = minitorch.Scalar(
-        0.0, ScalarHistory(Function1, ctx=Context(), inputs=[x, x])
-    )
-    back = constant.chain_rule(d_output=5)
-    assert len(list(back)) == 2
+    "Check that constants are ignored."
+    constant = minitorch.Scalar(0.0, None)
+
+    y = Function1.apply(constant, constant)
+
+    back = y.chain_rule(d_output=5)
+    assert len(list(back)) == 0
 
 
 @pytest.mark.task1_3
 def test_chain_rule2() -> None:
-    var = minitorch.Scalar(0.0, ScalarHistory())
-    constant = minitorch.Scalar(
-        0.0, ScalarHistory(Function1, ctx=Context(), inputs=[var, var])
-    )
-    back = constant.chain_rule(d_output=5)
+    "Check that constants are ignored and variables get derivatives."
+    var = minitorch.Scalar(0.0)
+    constant = minitorch.Scalar(0.0, None)
+
+    y = Function1.apply(var, constant)
+
+    back = y.chain_rule(d_output=5)
     back = list(back)
-    assert len(back) == 2
+    assert len(back) == 1
     variable, deriv = back[0]
     assert deriv == 5
 
 
 @pytest.mark.task1_3
 def test_chain_rule3() -> None:
-    "Check that constrants are ignored and variables get derivatives."
-    constant = 10
+    "Check that constants are ignored and variables get derivatives."
     var = minitorch.Scalar(5)
+    constant = minitorch.Scalar(10, None)
 
     y = Function2.apply(constant, var)
 
     back = y.chain_rule(d_output=5)
     back = list(back)
-    assert len(back) == 2
-    variable, deriv = back[1]
+    assert len(back) == 1
+    variable, deriv = back[0]
     # assert variable.name == var.name
     assert deriv == 5 * 10
 
@@ -141,3 +164,14 @@ def test_backprop4() -> None:
     var4 = Function1.apply(var2, var3)
     var4.backward(d_output=5)
     assert var0.derivative == 10
+
+
+@pytest.mark.task1_4
+def test_backprop5() -> None:
+    # Example 5: F2(F2(0, v1), F2(0, v1))
+    var1 = minitorch.Scalar(2)
+    var2 = Function2.apply(1, var1)
+    var3 = Function2.apply(1, var1)
+    var4 = Function2.apply(var2, var3)
+    var4.backward(d_output=1)
+    assert var1.derivative == 7

@@ -150,14 +150,15 @@ class Sigmoid(ScalarFunction):
     @staticmethod
     def forward(ctx: Context, a: float) -> float:
         # raise NotImplementedError("Need to implement for Task 1.2")
-        ctx.save_for_backward(a)
-        return operators.sigmoid(a)
+        result = operators.sigmoid(a)
+        ctx.save_for_backward(result)
+        return result
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # raise NotImplementedError("Need to implement for Task 1.4")
-        (a,) = ctx.saved_values
-        return d_output * operators.sigmoid(a) * (1 - operators.sigmoid(a))
+        (sig_result,) = ctx.saved_values
+        return d_output * sig_result * (1 - sig_result)
 
 
 class ReLU(ScalarFunction):
@@ -182,14 +183,15 @@ class Exp(ScalarFunction):
     @staticmethod
     def forward(ctx: Context, a: float) -> float:
         # raise NotImplementedError("Need to implement for Task 1.2")
-        ctx.save_for_backward(a)
-        return operators.exp(a)
+        result = operators.exp(a)
+        ctx.save_for_backward(result)
+        return result
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # raise NotImplementedError("Need to implement for Task 1.4")
-        (a,) = ctx.saved_values
-        return operators.exp(a) * d_output
+        (exp_result,) = ctx.saved_values
+        return exp_result * d_output
 
 
 class LT(ScalarFunction):

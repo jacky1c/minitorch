@@ -301,6 +301,15 @@ class Tensor:
         # END CODE CHANGE (2021)
 
     def zeros(self, shape: Optional[UserShape] = None) -> Tensor:
+        """Returns a zero tensor with the same shape as this tensor
+
+        Args:
+            shape (Optional[UserShape], optional): a specific shape. Defaults to None.
+
+        Returns:
+            Tensor: a tensor full of zeros
+        """
+
         def zero(shape: UserShape) -> Tensor:
             return Tensor.make(
                 [0.0] * int(operators.prod(shape)), shape, backend=self.backend

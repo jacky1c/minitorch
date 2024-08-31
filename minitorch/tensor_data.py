@@ -43,8 +43,11 @@ def index_to_position(index: Index, strides: Strides) -> int:
         Position in storage
     """
 
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # raise NotImplementedError("Need to implement for Task 2.1")
+    assert len(index) == len(
+        strides
+    ), f"index and strides must have the same shape. index: {index.shape} strides: {strides.shape}"
+    return np.sum(index * strides, dtype=np.int32)
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -60,8 +63,14 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # raise NotImplementedError("Need to implement for Task 2.1")
+    assert len(shape) == len(
+        out_index
+    ), f"out_index and shape must have the same shape. out_index: {out_index.shape} Shape: {shape.shape}"
+    # prefer contiguous strides: the right-most stride is 1, bigger strides to the left
+    for i in range(len(shape) - 1, -1, -1):
+        out_index[i] = ordinal % shape[i]
+        ordinal = ordinal // shape[i]
 
 
 def broadcast_index(
@@ -82,9 +91,17 @@ def broadcast_index(
 
     Returns:
         None
+
+    Example:
+        >>> c = [0, 0]
+        >>> minitorch.broadcast_index((1, 2, 3), (3, 4, 5), (1, 5), c)
+        >>> c
+        [0, 3]
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    # raise NotImplementedError("Need to implement for Task 2.2")
+    for i in range(-1, -len(shape) - 1, -1):
+        out_index[i] = big_index[i] % shape[i]
+    return
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -101,8 +118,26 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     Raises:
         IndexingError : if cannot broadcast
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    # raise NotImplementedError("Need to implement for Task 2.2")
+    result: UserShape = []
+
+    # make two shapes the same length by padding 1s to the left of the shorter shape
+    # rule: Zip automatically adds dim of size 1 to the left
+    if len(shape1) > len(shape2):
+        shape2 = [1 for _ in range(len(shape1) - len(shape2))] + list(shape2)
+    else:
+        shape1 = [1 for _ in range(len(shape2) - len(shape1))] + list(shape1)
+
+    # two shapes, compare them column by column
+    for i in range(len(shape1)):
+        if shape1[i] == shape2[i] or 1 in [shape1[i], shape2[i]]:
+            # if their dimension is the same, nothing to worry.
+            # if their dimension mismatches and one of them is 1,
+            # apply rule: Dimensions of size 1 broadcast with anything.
+            result.append(max(shape1[i], shape2[i]))
+        else:
+            raise IndexingError(f"Cannot broadcast {shape1} and {shape2}")
+    return tuple(result)
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
@@ -227,8 +262,12 @@ class TensorData:
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        # TODO: Implement for Task 2.1.
-        raise NotImplementedError("Need to implement for Task 2.1")
+        # raise NotImplementedError("Need to implement for Task 2.1")
+        # get new shape and strides
+        new_shape = tuple([self.shape[i] for i in order])
+        new_strides = tuple([self.strides[i] for i in order])
+        # reshape data
+        return TensorData(storage=self._storage, shape=new_shape, strides=new_strides)
 
     def to_string(self) -> str:
         s = ""

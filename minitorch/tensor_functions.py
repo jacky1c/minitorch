@@ -207,30 +207,24 @@ class LT(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # raise NotImplementedError("Need to implement for Task 2.3")
-        result = a.f.lt_zip(a, b)
-        ctx.save_for_backward(result)
-        return result
+        return a.f.lt_zip(a, b)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         # raise NotImplementedError("Need to implement for Task 2.4")
-        (lt_result,) = ctx.saved_values
-        return lt_result.zeros(), lt_result.zeros()
+        return grad_output.zeros(), grad_output.zeros()
 
 
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # raise NotImplementedError("Need to implement for Task 2.3")
-        result = a.f.eq_zip(a, b)
-        ctx.save_for_backward(result)
-        return result
+        return a.f.eq_zip(a, b)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         # raise NotImplementedError("Need to implement for Task 2.4")
-        (eq_result,) = ctx.saved_values
-        return eq_result.zeros(), eq_result.zeros()
+        return grad_output.zeros(), grad_output.zeros()
 
 
 class IsClose(Function):

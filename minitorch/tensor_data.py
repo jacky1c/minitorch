@@ -44,10 +44,8 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
 
     # raise NotImplementedError("Need to implement for Task 2.1")
-    assert len(index) == len(
-        strides
-    ), f"index and strides must have the same shape. index: {index.shape} strides: {strides.shape}"
-    return np.sum(index * strides, dtype=np.int32)
+
+    return int(np.sum(index * strides))
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -64,13 +62,16 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # raise NotImplementedError("Need to implement for Task 2.1")
-    assert len(shape) == len(
-        out_index
-    ), f"out_index and shape must have the same shape. out_index: {out_index.shape} Shape: {shape.shape}"
+
+    # to avoid error "Overwrite of parallel loop index"
+    # `ordinal` is the index of the outer loop where `to_index` is called
+    # Note: `position = ordinal` doesn't solve this error
+    position = int(ordinal)
+
     # prefer contiguous strides: the right-most stride is 1, bigger strides to the left
     for i in range(len(shape) - 1, -1, -1):
-        out_index[i] = ordinal % shape[i]
-        ordinal = ordinal // shape[i]
+        out_index[i] = position % shape[i]
+        position = position // shape[i]
 
 
 def broadcast_index(

@@ -1,6 +1,6 @@
-# MiniTorch: A DIY Course on Machine Learning Engineering
+# <img src="./figs/logo.svg" alt="MiniTorch" height="25"/>: A DIY Course on Machine Learning Engineering
 
-This repository is part of my journey to learn the underlying engineering concepts of deep learning systems through implementing a minimal version of PyTorch library.
+This repository is part of my journey to learn the underlying infrastructure of deep learning systems through implementing a minimal version of the [PyTorch](https://pytorch.org) library.
 
 If you're interested in learning more, I highly recommend checking out the excellent [MiniTorch lectures](https://minitorch.github.io) and [Youtube playlist](https://www.youtube.com/playlist?list=PLO45-80-XKkQyROXXpn4PfjF1J2tH46w8) by [Prof. Rush](https://rush-nlp.com), and the [self-study guide](https://github.com/mukobi/Minitorch-Self-Study-Guide-SAIA/tree/main) by [Gabriel Mukobi](https://gabrielmukobi.com) that answers some common questions.
 
@@ -15,7 +15,7 @@ Topics covered:
 
 ## Setup
 
-My virtual environment is based on Python 3.8.
+My virtual environment is based on Python 3.8. The Google Colab notebook (for accessing GPU) in Module 3 also requires Python 3.8.
 ```bash
 conda create --name myenv python=3.8
 conda activate myenv
@@ -80,7 +80,7 @@ streamlit run project/app.py -- 0
 ```
 
 Then you should be able to see interactive data visualizations and you could "turn the knobs" of the parameters to explore model behaviour.
-![task0.5](./figs/task0.5.png)
+![task0.5](./figs/module0/task0.5.png)
 
 ## Module 1 - Autodiff
 
@@ -111,7 +111,7 @@ streamlit run project/app.py -- 1
 ```
 
 Here's the training result for the XOR dataset.
-![task1.5](./figs/task1.5.png)
+![task1.5](./figs/module1/task1.5.png)
 
 The parameters are
 ```
@@ -153,7 +153,7 @@ Visual Convention
 - For this tutorial, 3D tensor indexing follows `[depth, row, columns]`
 - For example, `tensor[0,1,2]` would give this blue cube in a cube of shape `(2,3,5)`
 
-  ![tensor_indexing](./figs/tensor_indexing.png)
+  ![tensor_indexing](./figs/module2/tensor_indexing.png)
 
 Storage
 - This is where the core data of the tensor is kept.
@@ -167,13 +167,13 @@ Strides
 - For column vectors, strides are (1,1)
 - Strides of (2,1): each row moves 2 steps in storage and each column moves 1 step. A size 10 tensor with strides of (2,1) will give us a matrix of shape (5,2)
 
-  ![stride21](./figs/stride21.svg)
+  ![stride21](./figs/module2/stride21.svg)
 - Strides of (1,2): each row moves 1 step in storage and each column moves 2 steps. A size 10 tensor with strides of (1,2) will give us a matrix of shape (2,5)
 
-  ![stride12](./figs/stride12.svg)
+  ![stride12](./figs/module2/stride12.svg)
 - Strides of (6,3,1): each row moves 3 step in storage, each column moves 1 step, and each depth moves 6 steps. A size 12 tensor with strides of (6,3,1) will give us a matrix of shape (2,2,3)
 
-  ![stride631](./figs/stride631.png)
+  ![stride631](./figs/module2/stride631.png)
 - Strides enable 3 operations:
   - Indexing: assuming strides of `(s1, s2, ...)` and we want to look up `tensor[index1, index2, ...]`, its position in storage is `storage[s1*index1 + s2*index2 + ...]`
   - Movement: how to move to the next row/column?
@@ -310,29 +310,190 @@ Backward for Map operations:
 - $f'_{x_j}(G(\textbf{x})) = d_j G'^j_{x_j}(\textbf{x})$
 - In backward, we only need to compute the derivative for each scalar position and then apply a `mul` map, i.e. `mul_map(g'(x), d_out)`
 
-  ![map_backward](./figs/map_backward.svg)
+  ![map_backward](./figs/module2/map_backward.svg)
 
 Backward for Zip operations:
 - $G'^i_{x_j}(\textbf{x}, \textbf{y}) = 0$ if $i \neq j$
 - $f'_{x_j}(G(\textbf{x}, \textbf{y})) = d_j G'^j_{x_j}(\textbf{x}, \textbf{y})$, $f'_{y_j}(G(\textbf{x}, \textbf{y})) = d_j G'^j_{y_j}(\textbf{x}, \textbf{y})$
 - In backward, we only need to compute the derivative for each scalar position and then apply a `mul` map, i.e. `mul_map(g'(x, y), d_out)`
 
-  ![zip_backward](./figs/zip_backward.svg)
+  ![zip_backward](./figs/module2/zip_backward.svg)
 
 Backward for Reduce operations:
 - $G'^i_{x_j}(\textbf{x}; dim) = 0$ if $i \neq j$
 - $f'_{x_j}(G(\textbf{x}; dim)) = d_j G'^j_{x_j}(\textbf{x}; dim)$
 - In backward, we only need to compute the derivative for each scalar position and then apply a `mul` map, i.e. `mul_map(g'(x, y), d_out)`. Here `d_out` is broadcasted to match the shape of `g'(x, y)`
 
-  ![reduce_backward](./figs/reduce_backward.svg)
+  ![reduce_backward](./figs/module2/reduce_backward.svg)
 
 ## Module 3 - Efficiency
 
-- [ ] Parallelization
-- [ ] Matrix Multiplication
+- [x] Parallelization
+- [x] Matrix Multiplication
 - [ ] CUDA Operations
 - [ ] CUDA Matrix
 - [ ] Training
+
+### Parallel Computation - Numba
+
+[Numba](https://numba.readthedocs.io/en/stable/) is a numerical JIT (Just-in-Time) compiler for Python.
+
+`numba.jit`
+- A function decorator that tells Numba to compile a Python function into native machine code using just-in-time (JIT) compilation.
+- It can be used to speed up the execution of the function by compiling it to machine code, which can be faster than interpreting the Python code.
+
+`numba.njit`
+- Similar to `numba.jit`, with stricter requirements for the types of input and output that the function can accept and return than `numba.jit`.
+- Faster and more memory-efficient than `numba.jit`.
+
+`numba.prange`
+- Running loops in parallel
+- Nested parallelism does not occur: only the outermost of nested `prange` loops executes in parallel and any inner `prange` are treated as standard `range`.
+- Warning: You have to be a bit careful to ensure that the loop actually can be parallelized. In short, this means that steps cannot depend on each other and each iteration cannot write to the same output value.
+  - Invalid example 1:
+    ```python
+    @njit(parallel=True)
+    def prange_wrong_result(x):
+        y = np.zeros(4)
+        for i in prange(len(x)):
+            # accumulating into the same element of `y` from different
+            # parallel iterations of the loop results in a race condition
+            y[i % 4] += x[i]
+        return y
+    ```
+  - Invalid example 2:
+    ```python
+    @njit(parallel=True)
+    def prange_wrong_result(x):
+        y = 0
+        for i in prange(len(x)):
+            # different order of x[i] will produce different results
+            y = (y + x[i])*5
+        return y
+    ```
+- For instance, when implementing reduce, you have to be careful to mix parallel and non-parallel loops.
+- Unsupported operations
+  - Mutating a list is not threadsafe. Invalid example:
+    ```python
+    @njit(parallel=True)
+    def invalid():
+        z = []
+        for i in prange(10000):
+            z.append(i)
+        return z
+    ```
+  - Induction variables are not associated with thread ID. Invalid example:
+    ```python
+    @njit(parallel=True)
+    def invalid():
+        n = get_num_threads()
+        z = [0 for _ in range(n)]
+        for i in prange(100):
+            z[i % n] += i
+        return z
+    ```
+
+Putting `njit` and `prange` together:
+```python
+from numba import njit, prange
+def map(fn):
+    # Change 1: Move function from Python to JIT version.
+    fn = njit()(fn)
+
+    def _map(out, input):
+        # Change 3: Run the loop in parallel (prange)
+        for i in prange(len(out)):
+            out[i] = fn(input[i])
+
+    # Change 2: Internal _map must be JIT version as well.
+    return njit()(_map)
+```
+
+### Fusing Operations
+
+- Another approach we can use to help improve tensor computations is to specialize commonly used combinations of operators.
+- Combining operations can eliminate unnecessary intermediate tensors. This is particularly helpful for saving memory.
+- In minitorch we will do this fusion by customizing special operations (e.g., MatMul).
+
+Mattrix Multiplication
+- In past modules we have done matrix multiplication by applying a broadcasted `zip` and then a `reduce`. For example, consider a tensor of size (2, 4) and a tensor of size (4, 3). They are viewed as tensors of size (2, 4, 1) and (1, 4, 3). We first zip these together with broadcasting to produce a tensor of size (2, 4, 3). And then reduce it to a tensor of size (2, 1, 3), which we can view as (2, 3).
+
+  ![matmul_inefficient](./figs/module3/matmul_inefficient.svg)
+- An alternative option is to fuse together these two operations. We can then skip computing the intermediate value and directly compute the output.
+- We do this by 1) walking over the output indices, 2) seeing which indices are reduced, and 3) then seeing which were part of the zip.
+- Forwad
+  - $f(A,B) = AB$
+- Backward
+  - $g'_A(f(A,B)) = \textbf{d}B^T$
+  - $g'_B(f(A,B)) = A^T\textbf{d}$
+
+### GPU Programming
+
+- There is a nice Numba library extension that allows us to code for GPUs directly in Python.
+
+CUDA
+- CUDA is a proprietary extension to C++ for Nvidia devices.
+- `Thread`
+  - A thread can run code and store a small amount of states.
+  - Each thread has a tiny amount of fixed local memory it can manipulate, which has to be constant size.
+  - All of the threads share the same CUDA code
+
+  ![thread](./figs/module3/thread.svg)
+- `Block`
+  - Threads hang out together in blocks.
+  - You can determine the size of the blocks, but there are a lot of restrictions.
+  - You can also have square or even cubic blocks.
+  - Each thread knows exactly where it is in the block. It gets this information in local variables telling it the `thread index`.
+
+  ![block](./figs/module3/block.svg)
+  - Threads in the same block can also talk to each other through `shared memory`. This is another constant chunk of memory that is associated with the block and can be accessed and written to by all of these threads
+
+  ![block shared memory](./figs/module3/block%20shared%20memory.svg)
+- `Grid`
+  - Blocks come together to form a grid.
+  - Each of the blocks has exactly the same size and shape, and all have their own shared memory.
+  - Each thread also knows its position in the global grid. The global position x, y for a thread is
+    ```python
+    def kernel():
+        x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+        y = cuda.blockIdx.y * cuda.blockDim.y + cuda.threadIdx.y
+        print(x, y)
+    ```
+- CUDA code
+  - Map a tensor size of (7,3)
+
+  ![CUDA compute](./figs/module3/cuda%20compute.svg)
+  ```python
+  # Helper function to call in CUDA
+  # @cuda.jit(device=True)
+  def times(a, b):
+      return a * b
+
+  # Main cuda launcher
+  # @cuda.jit()
+  def my_func(input, out):
+      # Create some local memory
+      local = cuda.local.array(5)
+
+      # Find my position.
+      x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+      y = cuda.blockIdx.y * cuda.blockDim.y + cuda.threadIdx.y
+
+      # Compute some information
+      local[1] = 10
+
+      # Guard some of the threads.
+      if x < out.shape[0] and y < out.shape[1]:
+          # Compute some global value
+          out[x, y] = times(input[x, y], local[1])
+
+  # launch my_func with instructions for how to set up the blocks and grid
+  threadsperblock = (4, 3)
+  blockspergrid = (1, 3)
+  my_func[blockspergrid, threadsperblock](in, out)
+  ```
+
+
 
 ## Module 4 - Networks
 
